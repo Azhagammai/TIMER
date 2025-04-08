@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Helmet } from "react-helmet";
 
 function App() {
-  // Timer states
   const [countdownTime, setCountdownTime] = useState(300);
   const [isCountdownRunning, setIsCountdownRunning] = useState(false);
   const [stopwatchTime, setStopwatchTime] = useState(0);
@@ -12,19 +12,17 @@ function App() {
   const countdownIntervalRef = useRef(null);
   const stopwatchIntervalRef = useRef(null);
 
-  // Memoized time formatter
   const formatTime = useCallback((seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }, []);
 
-  // Countdown functions
   const startCountdown = useCallback(() => {
     if (countdownTime <= 0) return;
     clearInterval(countdownIntervalRef.current);
     setIsCountdownRunning(true);
-    
+
     countdownIntervalRef.current = setInterval(() => {
       setCountdownTime((prev) => {
         if (prev <= 1) {
@@ -37,39 +35,37 @@ function App() {
     }, 1000);
   }, [countdownTime]);
 
-  const pauseCountdown = useCallback(() => {
+  const pauseCountdown = () => {
     clearInterval(countdownIntervalRef.current);
     setIsCountdownRunning(false);
-  }, []);
+  };
 
-  const resetCountdown = useCallback(() => {
+  const resetCountdown = () => {
     clearInterval(countdownIntervalRef.current);
     setIsCountdownRunning(false);
     setCountdownTime(300);
-  }, []);
+  };
 
-  // Stopwatch functions
-  const startStopwatch = useCallback(() => {
+  const startStopwatch = () => {
     clearInterval(stopwatchIntervalRef.current);
     setIsStopwatchRunning(true);
-    
+
     stopwatchIntervalRef.current = setInterval(() => {
       setStopwatchTime((prev) => prev + 1);
     }, 1000);
-  }, []);
+  };
 
-  const pauseStopwatch = useCallback(() => {
+  const pauseStopwatch = () => {
     clearInterval(stopwatchIntervalRef.current);
     setIsStopwatchRunning(false);
-  }, []);
+  };
 
-  const resetStopwatch = useCallback(() => {
+  const resetStopwatch = () => {
     clearInterval(stopwatchIntervalRef.current);
     setIsStopwatchRunning(false);
     setStopwatchTime(0);
-  }, []);
+  };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearInterval(countdownIntervalRef.current);
@@ -78,65 +74,71 @@ function App() {
   }, []);
 
   return (
-    <div className="font-sans max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-center mb-8">Timer App</h1>
+    <div className="container py-5">
+      <Helmet>
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+          crossOrigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq"
+          crossOrigin="anonymous"
+        ></script>
+      </Helmet>
 
-      {/* Countdown */}
-      <div className="mb-8 p-6 border border-gray-200 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">Countdown Timer</h2>
-        <div className="text-6xl font-bold text-center my-6 font-mono tabular-nums">
-          {formatTime(countdownTime)}
-        </div>
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={isCountdownRunning ? pauseCountdown : startCountdown}
-            className={`px-6 py-3 rounded-md text-white font-medium transition-colors ${
-              isCountdownRunning ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
-            }`}
-          >
-            {isCountdownRunning ? "Pause" : "Start"}
-          </button>
-          <button
-            onClick={resetCountdown}
-            className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-colors"
-          >
-            Reset
-          </button>
-        </div>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <label className="font-medium">Set Time (minutes): </label>
-          <input
-            type="number"
-            value={Math.floor(countdownTime / 60)}
-            onChange={(e) => setCountdownTime(Math.max(0, parseInt(e.target.value || 0) * 60))}
-            min="0"
-            className="p-2 w-20 border border-gray-300 rounded-md"
-            disabled={isCountdownRunning}
-          />
+      <h1 className="text-center mb-5">⏱ Timer App</h1>
+
+      {/* Countdown Timer */}
+      <div className="card mb-5 shadow">
+        <div className="card-body">
+          <h2 className="card-title text-center mb-4">Countdown Timer</h2>
+          <div className="display-1 text-center mb-4">{formatTime(countdownTime)}</div>
+          <div className="d-flex justify-content-center gap-3 mb-3">
+            <button
+              onClick={isCountdownRunning ? pauseCountdown : startCountdown}
+              className={`btn ${isCountdownRunning ? "btn-danger" : "btn-success"}`}
+            >
+              {isCountdownRunning ? "Pause" : "Start"}
+            </button>
+            <button className="btn btn-secondary" onClick={resetCountdown}>
+              Reset
+            </button>
+          </div>
+          <div className="d-flex justify-content-center align-items-center gap-2">
+            <label className="me-2">Set Time (minutes):</label>
+            <input
+              type="number"
+              className="form-control w-auto"
+              min="0"
+              disabled={isCountdownRunning}
+              value={Math.floor(countdownTime / 60)}
+              onChange={(e) =>
+                setCountdownTime(Math.max(0, parseInt(e.target.value || 0) * 60))
+              }
+            />
+          </div>
         </div>
       </div>
 
       {/* Stopwatch */}
-      <div className="p-6 border border-gray-200 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">Stopwatch</h2>
-        <div className="text-6xl font-bold text-center my-6 font-mono tabular-nums">
-          {formatTime(stopwatchTime)}
-        </div>
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={isStopwatchRunning ? pauseStopwatch : startStopwatch}
-            className={`px-6 py-3 rounded-md text-white font-medium transition-colors ${
-              isStopwatchRunning ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
-            }`}
-          >
-            {isStopwatchRunning ? "Pause" : "Start"}
-          </button>
-          <button
-            onClick={resetStopwatch}
-            className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-colors"
-          >
-            Reset
-          </button>
+      <div className="card shadow">
+        <div className="card-body">
+          <h2 className="card-title text-center mb-4">Stopwatch</h2>
+          <div className="display-1 text-center mb-4">{formatTime(stopwatchTime)}</div>
+          <div className="d-flex justify-content-center gap-3">
+            <button
+              onClick={isStopwatchRunning ? pauseStopwatch : startStopwatch}
+              className={`btn ${isStopwatchRunning ? "btn-danger" : "btn-success"}`}
+            >
+              {isStopwatchRunning ? "Pause" : "Start"}
+            </button>
+            <button className="btn btn-secondary" onClick={resetStopwatch}>
+              Reset
+            </button>
+          </div>
         </div>
       </div>
     </div>
